@@ -1,7 +1,7 @@
 ---
 title: "STAT/MATH 495: Problem Set 01"
-author: "WRITE YOUR NAME HERE"
-date: "`r format(Sys.time(), '%B %d, %Y')`"
+author: "Syed Abbas Shah"
+date: "2017-09-07"
 output:
   html_document:
     toc: true
@@ -16,6 +16,53 @@ knitr::opts_chunk$set(echo = TRUE, fig.width=8, fig.height=4.5)
 
 # Load packages
 library(tidyverse)
+library(mosaic)
+library(knitr)
 ```
 
+
+```{r}
+train <- read_csv("https://rudeboybert.github.io/STAT495/static/Titanic/train.csv")
+test <- read_csv("https://rudeboybert.github.io/STAT495/static/Titanic/test.csv")
+submission <- read_csv("https://rudeboybert.github.io/STAT495/static/Titanic/gender_submission.csv")
+
+glimpse(train)
+glimpse(test)
+glimpse(submission)
+
+View(train)
+View(test)
+View(submission)
+
+test %>% 
+  left_join(submission, by="PassengerId") %>% 
+  select(PassengerId, Sex, Survived)
+```
+That's a simple model where only sex is considered when deciding who survived on the Titanic.
+
+We can make more complicated models obviously. For now, I'll just look at selecting one more variable and looking at Survival based on that and Sex.
+```{r}
+model2 <- lm(train$Survived~train$Sex + train$Age + train$Fare + train$Pclass + train$SibSp)
+summary(model2)
+```
+
+Let's Look at Pclass.
+
+```{r}
+table(train$Survived,train$Sex,train$Pclass)
+```
+
+```{r}
+x<-test %>% 
+  left_join(submission, by="PassengerId") %>% 
+  select(PassengerId, Pclass,Sex, Survived)
+x2<-ifelse(x$Pclass==1,x$Survived <- 1, ifelse(x$Pclass==2 & x$Sex=="female", x$Survived<-1, 0))
+
+x2<-as.data.frame(x2)
+
+submission$Survived<- x2$x2
+submission$Survived<-as.integer(submission$Survived)
+mean(train$Survived); mean(submission$Survived)
+glimpse(submission)
+```
 
